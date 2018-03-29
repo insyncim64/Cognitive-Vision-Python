@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="AzureImageAnalysis" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="AzureImageAnalysis" moveletType="MULTI" initialQuestionKey="#1">
+	    <question key="#1" type="10" title="Image Capture">
+	        <answer key="#1_1" nextQuestionKey="END" />
+	        <text>This is a Capture Image screen.</text>
+	        <onLeaveOkPersistAssignment>
+	        	data = getAnswerDataByClientKey($answer:"#1_1", null);
+	        	params = {"Base64File" : data};
+	        	writeContainer("Data", params, 20);
+	        </onLeaveOkPersistAssignment>
+	    </question>
+	    <name>Image Capture</name>
+	</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

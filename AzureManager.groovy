@@ -5,11 +5,11 @@ import com.movilizer.maf.scripting.MAFContext
 import com.movilizer.maf.scripting.access.MAFConnectorGateway
 
 class AzureManager {
-	static final String KEY = "2e91458c4db94345899fb3669f1a93a2"
-	static final String BLOB_STORAGE_URL = 'https://api.cognitive.azure.cn/vision/v1.0/analyze'
+	static final String KEY = "558da1e602304d0ca7dcdb977889f079"
+	static final String BLOB_STORAGE_URL = 'https://api.cognitive.azure.cn/vision/v1.0/ocr?language=zh-Hans&detectOrientation=true'
 	private MAFContext context
 	private MAFConnectorGateway connector
-	private Logger logger
+	private MAFNotificationGateway notificationGateway
 
 	/**
 	 * Required constructor by the MAF sandbox
@@ -21,7 +21,7 @@ class AzureManager {
 	 */
 	AzureManager(MAFContext context) {
 		this.context = context
-		this.logger = new Logger(context, AzureManager.class)
+		this.notificationGateway = context.getNotificationManager()
 		this.connector = context.getConnectorManager()
 	}
 
@@ -38,21 +38,90 @@ class AzureManager {
 	 * @param file data in a byte array
 	 * @return the url of the file just uploaded (empty if errors occurs during upload)
 	 */
-	String uploadFile(byte[] file) {
+	Map<String, Object> uploadFile(byte[] file) {
 		HashMap<String, String> requestHeaders = getUploadHeaders()
 		String attachmentUrl = "${BLOB_STORAGE_URL}?visualFeatures=Color%2CCategories"
 		try {
 			byte[] result = (byte[]) this.connector.doRESTCall(attachmentUrl, file, 'BYTES', 'POST', 'UTF-8', requestHeaders)
 			if(result.length > 0) {
 				String stringResult = new String(result, 'UTF-8')
-				this.logger.info("Upload file successful", stringResult)
-				return stringResult
+				notificationGateway.writeInfo("Upload file successful", stringResult)
+				MAFJsonElement jsonElement = this.context.parseJSON(stringResult)
+      			Map resultMap = jsonToMap(jsonElement, this.context.getNotificationManager());
+				notificationGateway.writeInfo("Parse successful", resultMap)
+				Map<String, Object> lines = new HashMap<String, Object>()
+				Map lineMap = resultMap["regions"]["0"]["lines"]
+				Iterator<String> keysItr = lineMap.keySet().iterator()
+				while(keysItr.hasNext()) {
+					String key = keysItr.next();
+					Map value = lineMap.get(key);
+					String boundingBox = value["boundingBox"]
+					Map words = value["words"]
+					StringBuffer buffer = new StringBuffer()
+					Iterator<String> wordItr = words.keySet().iterator()
+					while(wordItr.hasNext()) {
+						String wordKey = wordItr.next()
+						buffer.append(words.get(wordKey))
+					}
+					lines.put(boundingBox, buffer.toString())
+				}
+				return lines
 			} else {
-				this.logger.info("No response back", null)
+				notificationGateway.writeInfo("No response back", null)
 			}
 		} catch(e) {
-			this.logger.error('Upload blob exception: ' + e.getMessage(), e)
+			notificationGateway.writeError('Upload blob exception: ' + e.getMessage(), e)
 		}
 		return ""
+	}
+
+	public static Map<String, Object> jsonToMap(MAFJsonElement json, MAFNotificationGateway notification) {
+		Map<String, Object> retMap = new HashMap<String, Object>();
+		if(!json.isNull()) {
+			if(json.isListType()) {
+				retMap = toList(json, notification);
+			} else if(json.isMapType()) {
+				retMap = toMap(json, notification);
+			}
+		}
+		return retMap;
+	}
+
+	public static Map<String, Object> toMap(MAFJsonElement object, MAFNotificationGateway notification) {
+        Map<String, Object> result = object.asMap();
+		Map<String, Object> map = new HashMap<String, Object>();
+        Iterator<String> keysItr = result.keySet().iterator();
+		while(keysItr.hasNext()) {
+			String key = keysItr.next();
+			Object value = result.get(key);
+			Object valueResult = null;
+			if(value.isListType()) {
+				valueResult = toList(value, notification);
+			} else if(value.isMapType()) {
+				valueResult = toMap(value, notification);
+			} else if(value.isPrimitiveType()) {
+				valueResult = value.asString()
+			}
+			map.put(key, valueResult)
+		}
+		return map;
+	}
+
+	public static Map<String, Object> toList(MAFJsonElement object, MAFNotificationGateway notification) {
+        List<Object> result = object.asList();
+		Map<String, Object> map = new HashMap<String, Object>();
+        for(int i = 0; i < result.size(); i++) {
+			Object value = result.get(i)
+			Object valueResult = null;
+			if(value.isListType()) {
+				valueResult = toList(value, notification);
+			} else if(value.isMapType()) {
+				valueResult = toMap(value, notification);
+			} else if(value.isPrimitiveType()) {
+				valueResult = value.asString()
+			}
+			map.put(String.valueOf(i), valueResult)
+		}
+		return map
 	}
 }
