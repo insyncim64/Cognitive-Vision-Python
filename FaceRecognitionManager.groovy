@@ -6,6 +6,7 @@ import com.movilizer.maf.scripting.access.MAFConnectorGateway
 
 class FaceRecognitionManager {
 	static final String KEY = "df1ba9afeb6240a7a937101115ba10b2"
+	static final String IDENTIFY_URL = 'https://api.cognitive.azure.cn/face/v1.0/identify'
 	static final String TRAIN_URL = 'https://api.cognitive.azure.cn/face/v1.0/persongroups/{personGroupId}/train'
 	static final String ADD_FACE_URL = 'https://api.cognitive.azure.cn/face/v1.0/persongroups/{personGroupId}/persons/{personId}/persistedFaces'
 	static final String ADD_PERSON_URL = 'https://api.cognitive.azure.cn/face/v1.0/persongroups/{personGroupId}/persons'
@@ -80,6 +81,29 @@ class FaceRecognitionManager {
 		MAFMasterdataEntry entry = mds.loadMasterdata(key)
 		def personId = entry.getDescription()
 		return personId
+	}
+
+	public String identifyFace(byte[] file) {
+		def faceId = detectFace(file)
+		if(faceId == null)
+			return false
+
+		//def list = new ArrayList()
+		//list.add(faceId)
+
+		def faceIds = "[\"" + faceId + "\"]"
+		def url = VERIFY_URL
+		def json = new HashMap()
+		json.put("faceIds", faceIds)
+		json.put("personGroupId", FACE_GROUP)
+		json.put("maxNumOfCandidatesReturned", 1)
+    	json.put("confidenceThreshold", 0.5)
+
+		def result = sendJSONRequest(url, "post", json)
+		if(result != null && result.size() == 1 && result["0"]["candidates"].size() == 1) {
+			return result["0"]["candidates"]["0"]["personId"]
+		}
+		return ""
 	}
 
 	/**
