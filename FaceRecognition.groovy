@@ -1,0 +1,1 @@
+//compare the photo with the target ID
