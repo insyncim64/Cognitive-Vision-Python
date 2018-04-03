@@ -1,0 +1,60 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="IdentifyFace" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="IdentifyFace" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1">
+	    <question key="#1" type="10" title="Identify Face">
+	        <answer key="#1_1" nextQuestionKey="#2" />
+	        <text>Please take a picture of you</text>
+	        <onEnterAssignment>
+	        	setPlaceholder("%NAME%", $global:currentName);
+	        </onEnterAssignment>
+	        <onLeaveOkPersistAssignment>
+	        	data = getAnswerDataByClientKey($answer:"#1_1", null);
+	        	params = {"Base64File" : data};
+	        	Key = concat("Identify_Face_", $global:currentName, "__", systemtime());
+	        	writeOnlineContainer(Key, params);
+	        	triggerOnlineSync();
+	        </onLeaveOkPersistAssignment>
+	    </question>
+	    
+	    <question key="#2" type="0" title="Result">
+	    	<answer key="#2_1" nextQuestionKey="END" >
+	    		<text>%RESULT%</text>
+	    	</answer>
+	    	<onEnterAssignment>
+	    		result = readOnlineContainer('result');
+	    		result = result['result'];
+	    		candidates = {};
+	    		for(i : result) {
+	    			candidates[i] = result[i]['personId'];
+	    		}
+	    		
+	    		filter = {
+					'col' : 'description'; 
+					'op' : 'in'; 
+					'val' : candidates;
+				};
+				
+				returnArray = {
+					"result": "all";
+				};
+				md = queryMasterdata($masterdata:'Person', null, filter, returnArray);
+				for(k : md) {
+					result = md[k]['key'];
+				}
+				if(count(md) ?gt 0 ?and length(result) ?gt 0) {
+	    			result = concat("You are: ", result);
+	    		} else {
+	    			result = "You are not in the group.";
+	    		}
+				setPlaceholder('%RESULT%', result);
+	    	</onEnterAssignment>
+	    </question>
+	    <name>Identify Face</name>
+	</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

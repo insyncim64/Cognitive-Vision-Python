@@ -1,0 +1,46 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="ListPerson" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="ListPerson" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1">
+	    <question key="#1" type="6" title="Person List">
+	        <answer key="#1_1" nextQuestionKey="identify_person_question" dummyAnswer="true"/>
+	        <answer key="#default" attributeType="72" nextQuestionKey="END">
+	        	<predefinedValue>X</predefinedValue>
+	        </answer>
+	        <text>Here are all people in test group. Please click to verify.</text>
+	        <onEnterAssignment>
+	        	setOkText("End");
+	        	filter = {};
+	
+				returnArray = {
+					"result": "all";
+				};
+				md = queryMasterdata($masterdata:'Person', null, filter, returnArray);
+				
+				for(e : md) {
+					addAnswer($answer:"#1_1", md[e]['key'], md[e]['key']);
+				}
+	        </onEnterAssignment>
+	        <onLeaveOkPersistAssignment>
+	        	if(length(getQuestionClientKey()) ?gt 0) {
+	        		$global:currentName = getQuestionClientKey();
+	        	}
+	        </onLeaveOkPersistAssignment>
+	    </question>
+	    
+	    <!-- IDENTIFY PERSON SCREEN -->
+		<question type="40" title="IDENTIFY PERSON SCREEN" key="identify_person_question" intermoveletType="1" intermoveletMoveletKey="VerifyFace" intermoveletMoveletKeyExtension="${#Developer}">
+			<answer key="answer_1" nextQuestionKey="END">
+				<text>Sorry, IDENTIFY PERSON SCREEN is not working right now. Can you try in few minutes?</text>
+			</answer>
+		</question>
+			
+	    <name>Person List</name>
+	    <masterdata pool="Person"></masterdata>
+	</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

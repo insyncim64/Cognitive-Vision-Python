@@ -1,0 +1,45 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="TrainProcess" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="TrainProcess" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="init">
+		    <question type="41" title="" key="init">
+				<answer key="answer_0" nextQuestionKey="create_person_question">
+				</answer>
+			</question>
+		    
+		    <!-- CREATE PERSON SCREEN -->
+			<question type="40" title="CREATE PERSON SCREEN" key="create_person_question" intermoveletType="1" intermoveletMoveletKey="CreatePerson" intermoveletMoveletKeyExtension="${#Developer}">
+				<answer key="answer_1" nextQuestionKey="add_face_question">
+					<text>Sorry, CREATE PERSON SCREEN is not working right now. Can you try in few minutes?</text>
+				</answer>
+			</question>
+			
+			<!-- ADD FACE SCREEN -->
+			<question type="40" title="ADD FACE SCREEN" key="add_face_question" intermoveletType="1" intermoveletMoveletKey="AddFace" intermoveletMoveletKeyExtension="${#Developer}">
+				<answer key="answer_2" nextQuestionKey="train_question_confirm">
+					<text>Sorry, ADD FACE SCREEN is not working right now. Can you try in few minutes?</text>
+				</answer>
+			</question>
+			
+			<!-- TRAIN SCREEN CONFIRM -->
+			<question type="0" title="TRAIN SCREEN" key="train_question_confirm">
+				<answer key="answer_3" nextQuestionKey="train_question">
+					<text>Click OK to train the group</text>
+				</answer>
+			</question>
+			
+			<!-- TRAIN SCREEN -->
+			<question type="40" title="TRAIN SCREEN" key="train_question" intermoveletType="1" intermoveletMoveletKey="TrainGroup" intermoveletMoveletKeyExtension="${#Developer}">
+				<answer key="answer_4" nextQuestionKey="END">
+					<text>Sorry, TRAIN GROUP is not working right now. Can you try in few minutes?</text>
+				</answer>
+			</question>
+			
+		    <name>Add Person Process</name>
+		</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

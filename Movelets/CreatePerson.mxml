@@ -1,0 +1,34 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="CreatePerson" ignoreExtensionKey="true" />
+	<moveletSet>
+		<movelet moveletKey="CreatePerson" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1" visible="false">
+		    <question key="#1" type="5" title="Create Person">
+		        <answer key="#1_1" nextQuestionKey="END" action="UPLOADONLY">
+		        	<text>Pleae give your name: </text>
+		        </answer>
+				<validation position='1' type="ERROR">
+			      <condition>$local:exists</condition>
+			      <text>This person is added. Please choose another name.</text>
+			    </validation>
+		        <onLeaveOkPrepareAssignment>
+		        	data = getAnswerValueByClientKey($answer:"#1_1", null);
+		        	result = getMasterdata($masterdata:'Person', data);
+		        	$local:exists = false;
+		        	$local:exists = result != null;
+		        </onLeaveOkPrepareAssignment>
+		        <onLeaveOkPersistAssignment>
+		        	data = getAnswerValueByClientKey($answer:"#1_1", null);
+		        	params = {"name" : data};
+		        	$global:currentName = data;
+		        	key = concat("Create_Person_", $global:currentName, "__", systemtime());
+		        	writeContainer(key, params, 20);
+		        </onLeaveOkPersistAssignment>
+		    </question>
+		    <name>Create Person</name>
+		</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

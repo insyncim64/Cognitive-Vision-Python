@@ -1,0 +1,23 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="AddFace" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="AddFace" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1" visible="false" >
+		    <question key="#1" type="10" title="Add ">
+		        <answer key="#1_1" nextQuestionKey="END" action="UPLOADONLY" />
+		        <text>Add only one face</text>
+		        <onLeaveOkPersistAssignment>
+		        	data = getAnswerDataByClientKey($answer:"#1_1", null);
+		        	params = {"Base64File" : data};
+		        	params["name"] = $global:currentName;
+		        	key = concat("Add__Face__", $global:currentName, "__", systemtime());
+		        	writeContainer(key, params, 20);
+		        </onLeaveOkPersistAssignment>
+		    </question>
+		    <name>Add Face</name>
+		</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

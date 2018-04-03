@@ -1,0 +1,25 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletAssignment moveletKey="AddFace" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="CreatePerson" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="IdentifyFace" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="ListPerson" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="TrainGroup" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="TrainProcess" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+	<moveletAssignment moveletKey="VerifyFace" moveletKeyExtension="${#Developer}">
+		<participant participantKey="@amelia@mov-cn.com" name="Amelia Azure" deviceAddress="@amelia@mov-cn.com"></participant>
+	</moveletAssignment>
+</MovilizerRequest>

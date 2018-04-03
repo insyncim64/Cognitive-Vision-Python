@@ -1,0 +1,21 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="TrainGroup" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="TrainGroup" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1" visible="false">
+	    <question key="#1" type="41" title="Train group">
+	        <answer key="#1_1" nextQuestionKey="END" action="UPLOADONLY" />
+	        <text>Start to train group</text>
+	        <onLeaveOkPersistAssignment>
+	        	params = {"name" : $global:currentName};
+	        	key = concat("Train_Group_", $global:currentName, "__", systemtime());
+	        	writeContainer(key, params, 20);
+	        </onLeaveOkPersistAssignment>
+	    </question>
+	    <name>Train Faces</name>
+	</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>

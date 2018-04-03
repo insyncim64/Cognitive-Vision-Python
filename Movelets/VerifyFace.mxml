@@ -1,0 +1,38 @@
+<MovilizerRequest requestTrackingKey="" systemId="${#Project#SystemID}" systemPassword="${#Project#Password}" 
+	numResponses="1000" synchronousResponse="true" 
+	useAutoAcknowledge="true" xmlns="http://movilitas.com/movilizer/v15">
+	<moveletDelete moveletKey="VerifyFace" ignoreExtensionKey="true"  />
+	<moveletSet>
+		<movelet moveletKey="VerifyFace" moveletKeyExtension="${#Developer}" moveletType="MULTI" initialQuestionKey="#1" visible="false">
+	    <question key="#1" type="10" title="Identify Face">
+	        <answer key="#1_1" nextQuestionKey="#2" />
+	        <text>Please take a picture of %NAME%</text>
+	        <onEnterAssignment>
+	        	setPlaceholder("%NAME%", $global:currentName);
+	        </onEnterAssignment>
+	        <onLeaveOkPersistAssignment>
+	        	data = getAnswerDataByClientKey($answer:"#1_1", null);
+	        	params = {"Base64File" : data};
+	        	params["name"] = $global:currentName;
+	        	Key = concat("Identify_Face_", $global:currentName, "__", systemtime());
+	        	writeOnlineContainer(Key, params);
+	        	triggerOnlineSync();
+	        </onLeaveOkPersistAssignment>
+	    </question>
+	    
+	    <question key="#2" type="0">
+	    	<answer key="#2_1" nextQuestionKey="END" >
+	    		<text>%RESULT%</text>
+	    	</answer>
+	    	<onEnterAssignment>
+	    		result = readOnlineContainer('result');
+	    		result = condition(result['result'] ?eq 'true', '', 'not ');
+	    		setPlaceholder('%RESULT%', concat("Given photo is ", result, $global:currentName));
+	    	</onEnterAssignment>
+	    </question>
+	    <name>Verify Face</name>
+	</movelet>
+
+${#Project#BeforePart}<participant participantKey="${#Project#partID}" name="${#Project#partName}" deviceAddress="${#Project#deviceAddress}"/>${#Project#AfterPart}
+	</moveletSet>
+</MovilizerRequest>
