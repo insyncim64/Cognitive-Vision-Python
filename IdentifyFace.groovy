@@ -12,7 +12,7 @@ notificationManager.writeDebug("Upload container received $key", null)
 byte[] file = (byte[]) dataContainer.getObject("Base64File")
 
 def result = manager.identifyFace(file)
-notificationManager.writeInfo("Identify face: " + String.valueOf(result), null)
+notificationManager.writeInfo("Identify faces", result)
 Hashtable onlineContainerReply = new Hashtable()
 onlineContainerReply.put("result", result)
 mafContext.addOnlineContainerReply("result", onlineContainerReply)

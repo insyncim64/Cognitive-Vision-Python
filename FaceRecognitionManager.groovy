@@ -83,25 +83,38 @@ class FaceRecognitionManager {
 		return personId
 	}
 
-	public String identifyFace(byte[] file) {
+	public Map<String, Object> identifyFace(byte[] file) {
 		def faceId = detectFace(file)
 		if(faceId == null)
 			return false
 
-		//def list = new ArrayList()
-		//list.add(faceId)
+		def list = new ArrayList()
+		list.add(faceId)
 
-		def faceIds = "[\"" + faceId + "\"]"
-		def url = VERIFY_URL
+		def url = IDENTIFY_URL
 		def json = new HashMap()
-		json.put("faceIds", faceIds)
+		json.put("faceIds", list)
 		json.put("personGroupId", FACE_GROUP)
-		json.put("maxNumOfCandidatesReturned", 1)
-    	json.put("confidenceThreshold", 0.5)
+		json.put("maxNumOfCandidatesReturned", 5)
+    	json.put("confidenceThreshold", 0.7)
+		def jsonString = this.context.toJSON(json)
+		def stringResult = sendStringRequest(url, "post", jsonString)
+		MAFJsonElement jsonElement = this.context.parseJSON(stringResult)
+		def result = jsonToMap(jsonElement, this.context.getNotificationManager())
+		notificationGateway.writeDebug("Parse successful", result)
+		if(result != null) {
+			def resultMap = new HashMap()
+			for(i in result["0"]["candidates"].keySet()) {
+				def e = result["0"]["candidates"].get(i)
+				def confidence = e["confidence"]
+				def personId = e["personId"]
 
-		def result = sendJSONRequest(url, "post", json)
-		if(result != null && result.size() == 1 && result["0"]["candidates"].size() == 1) {
-			return result["0"]["candidates"]["0"]["personId"]
+				def entry = new HashMap()
+				entry.put("confidence", confidence)
+				entry.put("personId", personId)
+				resultMap[i] = entry
+			}
+			return resultMap
 		}
 		return ""
 	}
@@ -186,6 +199,25 @@ class FaceRecognitionManager {
 	public boolean trainGroup() {
 		def url = TRAIN_URL.replace("{personGroupId}", FACE_GROUP)
 		return sendJSONRequest(url, 'post', null) != null
+	}
+
+	/**
+	 * Uploads a file to the service
+	 * @param fileName to use in the uploading process
+	 * @param file data in a byte array
+	 * @return the url of the file just uploaded (empty if errors occurs during upload)
+	 */
+	String sendStringRequest(url, method, jsonString) {
+		HashMap<String, String> requestHeaders = getJSONHeaders()
+		try {
+			notificationGateway.writeDebug("Sending String request: " + method, jsonString)
+			def result = this.connector.doRESTCall(url, jsonString, 'String', method, 'UTF-8', requestHeaders)
+			notificationGateway.writeDebug("Send String successful", result)
+			return result
+		} catch(e) {
+			notificationGateway.writeError('Upload exception', e)
+		}
+		return null
 	}
 
 	/**
